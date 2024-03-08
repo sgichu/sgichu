@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @sgichu
 - 👀 I’m interested in data projects.
-- 🌱 I’m currently learning Data Science on Udemy & learning Python.
+- 🌱 Data Scientist- able to use Python & R.
 - 💞️ I’m looking to collaborate on projects that can help me get hands on experience to learn & grow.
 - 📫 How to reach me - affluenceguru@gmail.com
 
