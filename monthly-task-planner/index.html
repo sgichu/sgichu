@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Task Planner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>Monthly Task Planner</h1>
+      <p class="subtitle">Plan your month, track it week by week.</p>
+    </header>
+
+    <section class="card">
+      <label for="person-name">Name</label>
+      <input type="text" id="person-name" placeholder="Enter your name" autocomplete="name" />
+    </section>
+
+    <section class="card">
+      <label for="task-input">Add a task</label>
+      <form id="task-form" class="task-form">
+        <input type="text" id="task-input" placeholder="What do you want to achieve this month?" required />
+        <button type="submit">Add Task</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="table-wrapper">
+        <table id="task-table">
+          <thead>
+            <tr>
+              <th class="task-col">Task</th>
+              <th>Week 1</th>
+              <th>Week 2</th>
+              <th>Week 3</th>
+              <th>Week 4</th>
+              <th class="action-col"></th>
+            </tr>
+          </thead>
+          <tbody id="task-list"></tbody>
+        </table>
+        <p id="empty-state" class="empty-state">No tasks yet — add your first goal above.</p>
+      </div>
+    </section>
+
+    <section class="card summary" id="summary-card" hidden>
+      <span id="summary-text"></span>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
