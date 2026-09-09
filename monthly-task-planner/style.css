@@ -35,7 +35,7 @@ body {
 }
 
 .app {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
@@ -115,13 +115,11 @@ button:hover {
 }
 
 table {
-  width: 100%;
   border-collapse: collapse;
-  min-width: 480px;
 }
 
 th, td {
-  padding: 10px 8px;
+  padding: 8px 4px;
   text-align: center;
   border-bottom: 1px solid var(--border);
   font-size: 0.9rem;
@@ -129,10 +127,16 @@ th, td {
 
 th.task-col, td.task-cell {
   text-align: left;
+  padding-left: 10px;
 }
 
-.task-col {
-  width: 40%;
+.task-col,
+td.task-cell {
+  min-width: 200px;
+  position: sticky;
+  left: 0;
+  background: var(--card-bg);
+  z-index: 1;
 }
 
 .action-col {
@@ -145,6 +149,37 @@ thead th {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.day-col,
+.day-cell {
+  width: 34px;
+  min-width: 34px;
+}
+
+.day-col {
+  line-height: 1.2;
+}
+
+.day-num {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.day-dow {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.today-col {
+  background: var(--accent-light);
+}
+
+th.today-col .day-num {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .task-cell {
@@ -178,6 +213,10 @@ thead th {
 }
 
 tr.subtask-row {
+  background: var(--accent-light);
+}
+
+tr.subtask-row td.task-cell {
   background: var(--accent-light);
 }
 
@@ -256,4 +295,54 @@ input[type="checkbox"] {
   background: var(--accent);
   width: 0%;
   transition: width 0.2s ease;
+}
+
+.journal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.journal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.journal-header label {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+}
+
+.journal-header select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.journal-prompt label {
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.journal-prompt textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.journal-prompt textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }

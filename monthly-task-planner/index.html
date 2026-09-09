@@ -10,7 +10,7 @@
   <div class="app">
     <header class="app-header">
       <h1>Monthly Task Planner</h1>
-      <p class="subtitle">Plan your month, track it week by week.</p>
+      <p class="subtitle" id="month-label">Plan your month, track it day by day.</p>
     </header>
 
     <section class="card">
@@ -30,14 +30,7 @@
       <div class="table-wrapper">
         <table id="task-table">
           <thead>
-            <tr>
-              <th class="task-col">Task</th>
-              <th>Week 1</th>
-              <th>Week 2</th>
-              <th>Week 3</th>
-              <th>Week 4</th>
-              <th class="action-col"></th>
-            </tr>
+            <tr id="header-row"></tr>
           </thead>
           <tbody id="task-list"></tbody>
         </table>
@@ -49,6 +42,25 @@
       <span id="summary-text"></span>
       <div class="progress-bar">
         <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="card journal-card">
+      <div class="journal-header">
+        <label for="journal-date">Journal</label>
+        <select id="journal-date"></select>
+      </div>
+      <div class="journal-prompt">
+        <label for="journal-grateful">Today I am grateful for&hellip;</label>
+        <textarea id="journal-grateful" rows="2"></textarea>
+      </div>
+      <div class="journal-prompt">
+        <label for="journal-accomplished">Today I accomplished&hellip;</label>
+        <textarea id="journal-accomplished" rows="2"></textarea>
+      </div>
+      <div class="journal-prompt">
+        <label for="journal-focus">Tomorrow I want to focus on&hellip;</label>
+        <textarea id="journal-focus" rows="2"></textarea>
       </div>
     </section>
   </div>
