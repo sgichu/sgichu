@@ -19,14 +19,39 @@
     </section>
 
     <section class="card">
-      <label for="task-input">Add a task</label>
+      <h2 class="section-heading">Monthly Reset</h2>
+      <p class="section-hint">Fresh page, fresh month. Fill this in once to set the tone.</p>
+      <div class="reset-grid">
+        <div class="reset-field">
+          <label for="reset-vision">What I want this month to look like</label>
+          <textarea id="reset-vision" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="reset-goals">My main goals for the month</label>
+          <textarea id="reset-goals" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="reset-improve">3 things I want to improve</label>
+          <textarea id="reset-improve" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="reset-forward">Things I'm looking forward to</label>
+          <textarea id="reset-forward" rows="2"></textarea>
+        </div>
+        <div class="reset-field reset-field-wide">
+          <label for="reset-habit">A habit I want to build</label>
+          <textarea id="reset-habit" rows="2"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-heading">Monthly Goals Tracker</h2>
+      <p class="section-hint">List your goals, then tick off each day you work on them.</p>
       <form id="task-form" class="task-form">
         <input type="text" id="task-input" placeholder="What do you want to achieve this month?" required />
         <button type="submit">Add Task</button>
       </form>
-    </section>
-
-    <section class="card">
       <div class="table-wrapper">
         <table id="task-table">
           <thead>
@@ -34,7 +59,7 @@
           </thead>
           <tbody id="task-list"></tbody>
         </table>
-        <p id="empty-state" class="empty-state">No tasks yet — add your first goal above.</p>
+        <p id="empty-state" class="empty-state">No goals yet — add your first one above.</p>
       </div>
     </section>
 
@@ -45,23 +70,23 @@
       </div>
     </section>
 
-    <section class="card journal-card">
+    <section class="card">
+      <h2 class="section-heading">Daily/Weekly Prompts</h2>
+      <p class="section-hint">Browse a prompt, then use it to kick off your brain dump below.</p>
+      <div class="cadence-toggle" role="tablist" aria-label="Prompt cadence">
+        <button type="button" class="cadence-btn active" data-cadence="daily">Daily</button>
+        <button type="button" class="cadence-btn" data-cadence="weekly">Weekly</button>
+      </div>
+      <div id="prompt-groups"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-heading">Brain Dump</h2>
       <div class="journal-header">
-        <label for="journal-date">Journal</label>
+        <p class="section-hint" style="margin:0">No structure needed — write whatever's on your mind.</p>
         <select id="journal-date"></select>
       </div>
-      <div class="journal-prompt">
-        <label for="journal-grateful">Today I am grateful for&hellip;</label>
-        <textarea id="journal-grateful" rows="2"></textarea>
-      </div>
-      <div class="journal-prompt">
-        <label for="journal-accomplished">Today I accomplished&hellip;</label>
-        <textarea id="journal-accomplished" rows="2"></textarea>
-      </div>
-      <div class="journal-prompt">
-        <label for="journal-focus">Tomorrow I want to focus on&hellip;</label>
-        <textarea id="journal-focus" rows="2"></textarea>
-      </div>
+      <textarea id="journal-braindump" class="brain-dump" rows="8" placeholder="Start typing, or click a prompt above to begin&hellip;"></textarea>
     </section>
   </div>
 

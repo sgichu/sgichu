@@ -11,11 +11,48 @@ const summaryCard = document.getElementById("summary-card");
 const summaryText = document.getElementById("summary-text");
 const progressFill = document.getElementById("progress-fill");
 const journalDateSelect = document.getElementById("journal-date");
-const journalGrateful = document.getElementById("journal-grateful");
-const journalAccomplished = document.getElementById("journal-accomplished");
-const journalFocus = document.getElementById("journal-focus");
+const journalBrainDump = document.getElementById("journal-braindump");
+const promptGroups = document.getElementById("prompt-groups");
+const cadenceButtons = document.querySelectorAll(".cadence-btn");
+
+const resetFields = {
+  vision: document.getElementById("reset-vision"),
+  goals: document.getElementById("reset-goals"),
+  improve: document.getElementById("reset-improve"),
+  forward: document.getElementById("reset-forward"),
+  habit: document.getElementById("reset-habit"),
+};
 
 const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+const PROMPT_LIBRARY = [
+  { cadence: "daily", category: "Gratitude", text: "Today I am grateful for…" },
+  { cadence: "daily", category: "Gratitude", text: "Today I accomplished…" },
+  { cadence: "daily", category: "Gratitude", text: "Tomorrow I want to focus on…" },
+  { cadence: "daily", category: "Mindset", text: "What's one thought I want to let go of today?" },
+  { cadence: "daily", category: "Mindset", text: "What's something I'm proud of from today?" },
+  { cadence: "daily", category: "Relationships", text: "Who made my day better, and why?" },
+  { cadence: "daily", category: "Relationships", text: "Is there a message I've been meaning to send?" },
+  { cadence: "daily", category: "Finances", text: "Did I stick to my spending plan today?" },
+  { cadence: "daily", category: "Finances", text: "What's one dollar I spent well today?" },
+  { cadence: "daily", category: "Career", text: "What's one thing I moved forward at work today?" },
+  { cadence: "daily", category: "Career", text: "What slowed me down today, and why?" },
+  { cadence: "daily", category: "Self-growth", text: "What did I learn about myself today?" },
+  { cadence: "daily", category: "Self-growth", text: "What's one small win I can celebrate?" },
+
+  { cadence: "weekly", category: "Mindset", text: "What mindset shift do I need heading into next week?" },
+  { cadence: "weekly", category: "Mindset", text: "What's draining my energy lately?" },
+  { cadence: "weekly", category: "Relationships", text: "Who do I want to make time for this week?" },
+  { cadence: "weekly", category: "Relationships", text: "What relationship deserves more honesty from me?" },
+  { cadence: "weekly", category: "Finances", text: "How did my spending align with my values this week?" },
+  { cadence: "weekly", category: "Finances", text: "What financial goal needs attention this week?" },
+  { cadence: "weekly", category: "Career", text: "What's the biggest lesson from this week at work?" },
+  { cadence: "weekly", category: "Career", text: "What do I want to accomplish next week?" },
+  { cadence: "weekly", category: "Self-growth", text: "What pattern did I notice in myself this week?" },
+  { cadence: "weekly", category: "Self-growth", text: "What's one habit I want to strengthen next week?" },
+];
+
+let currentCadence = "daily";
 
 // Task ids whose "add subtask" inline form is currently open (not persisted).
 const openSubtaskForms = new Set();
@@ -46,14 +83,18 @@ function makeTask(text, daysInMonth) {
   return { id: makeId(), text, days: new Array(daysInMonth).fill(false), subtasks: [] };
 }
 
+function emptyMonthlyReset() {
+  return { vision: "", goals: "", improve: "", forward: "", habit: "" };
+}
+
 function emptyJournalEntry() {
-  return { grateful: "", accomplished: "", focus: "" };
+  return { brainDump: "" };
 }
 
 let monthInfo = getMonthInfo();
 
 function freshState() {
-  return { name: "", monthKey: monthInfo.monthKey, tasks: [], journal: {} };
+  return { name: "", monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
 }
 
 function loadState() {
@@ -68,12 +109,18 @@ function loadState() {
   if (!state.monthKey) state.monthKey = monthInfo.monthKey;
   if (!Array.isArray(state.tasks)) state.tasks = [];
   if (typeof state.journal !== "object" || state.journal === null) state.journal = {};
+  if (typeof state.monthlyReset !== "object" || state.monthlyReset === null) {
+    state.monthlyReset = emptyMonthlyReset();
+  }
 
-  // A new month resets the day-by-day sheet and journal; the name carries over.
+  // A new month resets the sheet, reset notes, and journal; the name carries over.
   if (state.monthKey !== monthInfo.monthKey) {
-    state = { name: state.name || "", monthKey: monthInfo.monthKey, tasks: [], journal: {} };
+    state = { name: state.name || "", monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
   } else {
     state.tasks.forEach((task) => normalizeTask(task));
+    Object.keys(emptyMonthlyReset()).forEach((key) => {
+      if (typeof state.monthlyReset[key] !== "string") state.monthlyReset[key] = "";
+    });
   }
 
   return state;
@@ -100,7 +147,7 @@ function renderHeader() {
 
   const taskTh = document.createElement("th");
   taskTh.className = "task-col";
-  taskTh.textContent = "Task";
+  taskTh.textContent = "Goal";
   headerRow.appendChild(taskTh);
 
   for (let day = 1; day <= monthInfo.daysInMonth; day++) {
@@ -262,9 +309,58 @@ function renderAddSubtaskFormRow(task) {
   return row;
 }
 
+function renderPrompts() {
+  promptGroups.innerHTML = "";
+
+  const byCategory = new Map();
+  PROMPT_LIBRARY.filter((p) => p.cadence === currentCadence).forEach((prompt) => {
+    if (!byCategory.has(prompt.category)) byCategory.set(prompt.category, []);
+    byCategory.get(prompt.category).push(prompt.text);
+  });
+
+  byCategory.forEach((prompts, category) => {
+    const group = document.createElement("div");
+    group.className = "prompt-category";
+
+    const heading = document.createElement("h3");
+    heading.className = "prompt-category-title";
+    heading.textContent = category;
+    group.appendChild(heading);
+
+    const list = document.createElement("div");
+    list.className = "prompt-chip-list";
+    prompts.forEach((text) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "prompt-chip";
+      chip.textContent = text;
+      chip.addEventListener("click", () => insertPrompt(text));
+      list.appendChild(chip);
+    });
+    group.appendChild(list);
+
+    promptGroups.appendChild(group);
+  });
+}
+
+function insertPrompt(text) {
+  const entry = currentJournalEntry();
+  const trimmed = entry.brainDump.replace(/\n+$/, "");
+  const prefix = trimmed ? "\n\n" : "";
+  entry.brainDump = `${trimmed}${prefix}${text}\n`;
+  journalBrainDump.value = entry.brainDump;
+  journalBrainDump.focus();
+  journalBrainDump.scrollTop = journalBrainDump.scrollHeight;
+  saveState();
+}
+
 function render() {
   nameInput.value = state.name;
   monthLabel.textContent = `${monthInfo.monthLabelText} — tap a day to mark it done.`;
+
+  Object.keys(resetFields).forEach((key) => {
+    resetFields[key].value = state.monthlyReset[key] || "";
+  });
 
   renderHeader();
 
@@ -282,6 +378,7 @@ function render() {
   });
 
   renderSummary();
+  renderPrompts();
   renderJournalDateOptions();
   renderJournalEntry();
 }
@@ -325,20 +422,25 @@ function renderJournalDateOptions() {
 function currentJournalEntry() {
   const key = journalDateSelect.value || monthInfo.todayKey;
   if (!state.journal[key]) state.journal[key] = emptyJournalEntry();
+  if (typeof state.journal[key].brainDump !== "string") state.journal[key].brainDump = "";
   return state.journal[key];
 }
 
 function renderJournalEntry() {
-  const entry = currentJournalEntry();
-  journalGrateful.value = entry.grateful;
-  journalAccomplished.value = entry.accomplished;
-  journalFocus.value = entry.focus;
+  journalBrainDump.value = currentJournalEntry().brainDump;
 }
 
 nameInput.addEventListener("input", () => {
   state.name = nameInput.value;
   saveState();
   renderSummary();
+});
+
+Object.keys(resetFields).forEach((key) => {
+  resetFields[key].addEventListener("input", () => {
+    state.monthlyReset[key] = resetFields[key].value;
+    saveState();
+  });
 });
 
 taskForm.addEventListener("submit", (event) => {
@@ -351,26 +453,28 @@ taskForm.addEventListener("submit", (event) => {
   render();
 });
 
+cadenceButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentCadence = btn.dataset.cadence;
+    cadenceButtons.forEach((b) => b.classList.toggle("active", b === btn));
+    renderPrompts();
+  });
+});
+
 journalDateSelect.addEventListener("change", () => {
   renderJournalEntry();
 });
 
-[
-  [journalGrateful, "grateful"],
-  [journalAccomplished, "accomplished"],
-  [journalFocus, "focus"],
-].forEach(([field, key]) => {
-  field.addEventListener("input", () => {
-    currentJournalEntry()[key] = field.value;
-    saveState();
-  });
+journalBrainDump.addEventListener("input", () => {
+  currentJournalEntry().brainDump = journalBrainDump.value;
+  saveState();
 });
 
 function checkForMonthChange() {
   const freshInfo = getMonthInfo();
   if (freshInfo.monthKey !== monthInfo.monthKey) {
     monthInfo = freshInfo;
-    state = { name: state.name, monthKey: monthInfo.monthKey, tasks: [], journal: {} };
+    state = { name: state.name, monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
     saveState();
     render();
   }
