@@ -23,7 +23,50 @@ const resetFields = {
   habit: document.getElementById("reset-habit"),
 };
 
+const themePicker = document.getElementById("theme-picker");
+
 const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+// Accent color is a per-browser display preference, not part of the monthly
+// state — it isn't reset when the month rolls over.
+const ACCENT_STORAGE_KEY = "monthly-task-planner-accent";
+const ACCENTS = [
+  { id: "indigo", label: "Classic", swatch: "#4f46e5" },
+  { id: "teal", label: "Calm", swatch: "#0f8a7c" },
+  { id: "rose", label: "Bold", swatch: "#d1477a" },
+  { id: "amber", label: "Sunny", swatch: "#b5730b" },
+  { id: "violet", label: "Dreamy", swatch: "#7c3fbf" },
+  { id: "slate", label: "Minimal", swatch: "#3f4756" },
+];
+
+function initThemePicker() {
+  const saved = localStorage.getItem(ACCENT_STORAGE_KEY) || "indigo";
+  document.documentElement.dataset.accent = saved;
+
+  ACCENTS.forEach((accent) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "theme-swatch" + (accent.id === saved ? " active" : "");
+    btn.style.setProperty("--swatch-color", accent.swatch);
+    btn.title = accent.label;
+    btn.setAttribute("aria-label", `${accent.label} accent color`);
+    btn.setAttribute("role", "radio");
+    btn.setAttribute("aria-checked", String(accent.id === saved));
+    btn.addEventListener("click", () => {
+      localStorage.setItem(ACCENT_STORAGE_KEY, accent.id);
+      document.documentElement.dataset.accent = accent.id;
+      themePicker.querySelectorAll(".theme-swatch").forEach((el) => {
+        el.classList.remove("active");
+        el.setAttribute("aria-checked", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-checked", "true");
+    });
+    themePicker.appendChild(btn);
+  });
+}
+
+initThemePicker();
 
 const PROMPT_LIBRARY = [
   { cadence: "daily", category: "Gratitude", text: "Today I am grateful for…" },

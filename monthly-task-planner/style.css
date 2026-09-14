@@ -23,6 +23,49 @@
   }
 }
 
+/* Accent color themes — pick whichever suits your mood, no default assumed. */
+[data-accent="teal"] { --accent: #0f8a7c; --accent-light: #dff5f1; }
+[data-accent="rose"] { --accent: #d1477a; --accent-light: #fbe7ee; }
+[data-accent="amber"] { --accent: #b5730b; --accent-light: #fdf0dc; }
+[data-accent="violet"] { --accent: #7c3fbf; --accent-light: #f1e7fb; }
+[data-accent="slate"] { --accent: #3f4756; --accent-light: #e7e9ee; }
+
+@media (prefers-color-scheme: dark) {
+  [data-accent="teal"] { --accent: #4fd6c3; --accent-light: #16302d; }
+  [data-accent="rose"] { --accent: #ef85ab; --accent-light: #3a2530; }
+  [data-accent="amber"] { --accent: #e8a53d; --accent-light: #3a2f18; }
+  [data-accent="violet"] { --accent: #b98bf0; --accent-light: #2c2140; }
+  [data-accent="slate"] { --accent: #a9b2c3; --accent-light: #262b35; }
+}
+
+.theme-picker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.theme-swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--card-bg);
+  background: var(--swatch-color);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.theme-swatch:hover {
+  filter: none;
+  box-shadow: 0 0 0 1px var(--swatch-color);
+}
+
+.theme-swatch.active {
+  box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--swatch-color);
+}
+
 * {
   box-sizing: border-box;
 }
