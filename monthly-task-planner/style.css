@@ -23,19 +23,51 @@
   }
 }
 
-/* Accent color themes — pick whichever suits your mood, no default assumed. */
-[data-accent="teal"] { --accent: #0f8a7c; --accent-light: #dff5f1; }
-[data-accent="rose"] { --accent: #d1477a; --accent-light: #fbe7ee; }
-[data-accent="amber"] { --accent: #b5730b; --accent-light: #fdf0dc; }
-[data-accent="violet"] { --accent: #7c3fbf; --accent-light: #f1e7fb; }
-[data-accent="slate"] { --accent: #3f4756; --accent-light: #e7e9ee; }
+/* Mood themes — each recolors the whole page (background, text, borders,
+   accent), not just buttons and checkboxes. Danger stays constant since
+   it's a semantic color, not a mood color. */
+[data-accent="teal"] {
+  --bg: #eef7f5; --card-bg: #ffffff; --text: #16302b; --muted: #5b7d76;
+  --border: #d7ece7; --accent: #0f8a7c; --accent-light: #dff5f1;
+}
+[data-accent="rose"] {
+  --bg: #fdf1f4; --card-bg: #ffffff; --text: #3a1220; --muted: #8a5a68;
+  --border: #f3d9e1; --accent: #d1477a; --accent-light: #fbe7ee;
+}
+[data-accent="amber"] {
+  --bg: #fdf8ec; --card-bg: #ffffff; --text: #362a10; --muted: #8a7550;
+  --border: #f0e2bf; --accent: #b5730b; --accent-light: #fdf0dc;
+}
+[data-accent="violet"] {
+  --bg: #f6f2fc; --card-bg: #ffffff; --text: #241a38; --muted: #7c6f95;
+  --border: #e6dcf5; --accent: #7c3fbf; --accent-light: #f1e7fb;
+}
+[data-accent="slate"] {
+  --bg: #f2f3f5; --card-bg: #ffffff; --text: #1a1d24; --muted: #6b7280;
+  --border: #e0e2e7; --accent: #3f4756; --accent-light: #e7e9ee;
+}
 
 @media (prefers-color-scheme: dark) {
-  [data-accent="teal"] { --accent: #4fd6c3; --accent-light: #16302d; }
-  [data-accent="rose"] { --accent: #ef85ab; --accent-light: #3a2530; }
-  [data-accent="amber"] { --accent: #e8a53d; --accent-light: #3a2f18; }
-  [data-accent="violet"] { --accent: #b98bf0; --accent-light: #2c2140; }
-  [data-accent="slate"] { --accent: #a9b2c3; --accent-light: #262b35; }
+  [data-accent="teal"] {
+    --bg: #0f1a18; --card-bg: #172724; --text: #d9efe9; --muted: #8fb3aa;
+    --border: #234039; --accent: #4fd6c3; --accent-light: #16302d;
+  }
+  [data-accent="rose"] {
+    --bg: #1c0f14; --card-bg: #2a161d; --text: #f3dee5; --muted: #b98a97;
+    --border: #3d222b; --accent: #ef85ab; --accent-light: #3a2530;
+  }
+  [data-accent="amber"] {
+    --bg: #1c1608; --card-bg: #292013; --text: #f0e4c8; --muted: #b8a578;
+    --border: #3d3018; --accent: #e8a53d; --accent-light: #3a2f18;
+  }
+  [data-accent="violet"] {
+    --bg: #150f22; --card-bg: #211934; --text: #e6dcf5; --muted: #a596c0;
+    --border: #322549; --accent: #b98bf0; --accent-light: #2c2140;
+  }
+  [data-accent="slate"] {
+    --bg: #121316; --card-bg: #1c1e24; --text: #eceef1; --muted: #9aa1ac;
+    --border: #2a2d34; --accent: #a9b2c3; --accent-light: #262b35;
+  }
 }
 
 .theme-picker {
