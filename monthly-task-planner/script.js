@@ -15,6 +15,8 @@ const journalBrainDump = document.getElementById("journal-braindump");
 const promptGroups = document.getElementById("prompt-groups");
 const cadenceButtons = document.querySelectorAll(".cadence-btn");
 
+document.getElementById("copyright-year").textContent = new Date().getFullYear();
+
 const resetFields = {
   vision: document.getElementById("reset-vision"),
   goals: document.getElementById("reset-goals"),

@@ -98,6 +98,19 @@
   box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--swatch-color);
 }
 
+.app-footer {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.app-footer p {
+  margin: 0;
+}
+
 * {
   box-sizing: border-box;
 }
