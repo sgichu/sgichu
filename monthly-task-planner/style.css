@@ -98,6 +98,27 @@
   box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--swatch-color);
 }
 
+.quote-callout {
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-light);
+  border-radius: 0 8px 8px 0;
+}
+
+.quote-callout p {
+  margin: 0 0 6px;
+  font-style: italic;
+  color: var(--text);
+}
+
+.quote-callout cite {
+  display: block;
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .app-footer {
   text-align: center;
   margin-top: 32px;
