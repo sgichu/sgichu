@@ -15,6 +15,16 @@ const journalBrainDump = document.getElementById("journal-braindump");
 const promptGroups = document.getElementById("prompt-groups");
 const cadenceButtons = document.querySelectorAll(".cadence-btn");
 
+const quarterLabel = document.getElementById("quarter-label");
+const qTaskForm = document.getElementById("qtask-form");
+const qTaskInput = document.getElementById("qtask-input");
+const qHeaderRow = document.getElementById("qheader-row");
+const qTaskList = document.getElementById("qtask-list");
+const qEmptyState = document.getElementById("qempty-state");
+const qSummaryCard = document.getElementById("qsummary-card");
+const qSummaryText = document.getElementById("qsummary-text");
+const qProgressFill = document.getElementById("qprogress-fill");
+
 document.getElementById("copyright-year").textContent = new Date().getFullYear();
 
 const resetFields = {
@@ -23,6 +33,14 @@ const resetFields = {
   improve: document.getElementById("reset-improve"),
   forward: document.getElementById("reset-forward"),
   habit: document.getElementById("reset-habit"),
+};
+
+const qResetFields = {
+  vision: document.getElementById("qreset-vision"),
+  goals: document.getElementById("qreset-goals"),
+  milestones: document.getElementById("qreset-milestones"),
+  risks: document.getElementById("qreset-risks"),
+  habit: document.getElementById("qreset-habit"),
 };
 
 const themePicker = document.getElementById("theme-picker");
@@ -101,6 +119,7 @@ let currentCadence = "daily";
 
 // Task ids whose "add subtask" inline form is currently open (not persisted).
 const openSubtaskForms = new Set();
+const openQuarterSubtaskForms = new Set();
 
 function pad2(n) {
   return String(n).padStart(2, "0");
@@ -120,6 +139,29 @@ function dayKey(monthKey, day) {
   return `${monthKey}-${pad2(day)}`;
 }
 
+function daysBetween(a, b) {
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((utcB - utcA) / 86400000);
+}
+
+function getQuarterInfo(date = new Date()) {
+  const year = date.getFullYear();
+  const quarterIndex = Math.floor(date.getMonth() / 3); // 0-3
+  const startMonth = quarterIndex * 3;
+  const quarterStart = new Date(year, startMonth, 1);
+  const quarterEnd = new Date(year, startMonth + 3, 0);
+  const daysInQuarter = daysBetween(quarterStart, quarterEnd) + 1;
+  const weeksInQuarter = Math.ceil(daysInQuarter / 7);
+  const todayOffsetDays = daysBetween(quarterStart, date);
+  const todayWeek = Math.min(weeksInQuarter, Math.floor(todayOffsetDays / 7) + 1);
+  const quarterKey = `${year}-Q${quarterIndex + 1}`;
+  const startLabel = quarterStart.toLocaleDateString(undefined, { month: "short" });
+  const endLabel = quarterEnd.toLocaleDateString(undefined, { month: "short" });
+  const quarterLabelText = `Q${quarterIndex + 1} ${year} (${startLabel}–${endLabel})`;
+  return { year, quarterIndex, weeksInQuarter, todayWeek, quarterKey, quarterLabelText };
+}
+
 function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
@@ -128,8 +170,16 @@ function makeTask(text, daysInMonth) {
   return { id: makeId(), text, days: new Array(daysInMonth).fill(false), subtasks: [] };
 }
 
+function makeQuarterTask(text, weeksInQuarter) {
+  return { id: makeId(), text, weeks: new Array(weeksInQuarter).fill(false), subtasks: [] };
+}
+
 function emptyMonthlyReset() {
   return { vision: "", goals: "", improve: "", forward: "", habit: "" };
+}
+
+function emptyQuarterlyReset() {
+  return { vision: "", goals: "", milestones: "", risks: "", habit: "" };
 }
 
 function emptyJournalEntry() {
@@ -137,9 +187,19 @@ function emptyJournalEntry() {
 }
 
 let monthInfo = getMonthInfo();
+let quarterInfo = getQuarterInfo();
 
 function freshState() {
-  return { name: "", monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
+  return {
+    name: "",
+    monthKey: monthInfo.monthKey,
+    monthlyReset: emptyMonthlyReset(),
+    tasks: [],
+    journal: {},
+    quarterKey: quarterInfo.quarterKey,
+    quarterlyReset: emptyQuarterlyReset(),
+    quarterlyTasks: [],
+  };
 }
 
 function loadState() {
@@ -157,14 +217,35 @@ function loadState() {
   if (typeof state.monthlyReset !== "object" || state.monthlyReset === null) {
     state.monthlyReset = emptyMonthlyReset();
   }
+  if (!state.quarterKey) state.quarterKey = quarterInfo.quarterKey;
+  if (!Array.isArray(state.quarterlyTasks)) state.quarterlyTasks = [];
+  if (typeof state.quarterlyReset !== "object" || state.quarterlyReset === null) {
+    state.quarterlyReset = emptyQuarterlyReset();
+  }
 
-  // A new month resets the sheet, reset notes, and journal; the name carries over.
+  // A new month resets the sheet, reset notes, and journal; a new quarter
+  // resets the quarterly goals and reset notes — independently of each
+  // other. The name always carries over.
   if (state.monthKey !== monthInfo.monthKey) {
-    state = { name: state.name || "", monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
+    state.monthKey = monthInfo.monthKey;
+    state.monthlyReset = emptyMonthlyReset();
+    state.tasks = [];
+    state.journal = {};
   } else {
     state.tasks.forEach((task) => normalizeTask(task));
     Object.keys(emptyMonthlyReset()).forEach((key) => {
       if (typeof state.monthlyReset[key] !== "string") state.monthlyReset[key] = "";
+    });
+  }
+
+  if (state.quarterKey !== quarterInfo.quarterKey) {
+    state.quarterKey = quarterInfo.quarterKey;
+    state.quarterlyReset = emptyQuarterlyReset();
+    state.quarterlyTasks = [];
+  } else {
+    state.quarterlyTasks.forEach((task) => normalizeQuarterTask(task));
+    Object.keys(emptyQuarterlyReset()).forEach((key) => {
+      if (typeof state.quarterlyReset[key] !== "string") state.quarterlyReset[key] = "";
     });
   }
 
@@ -178,6 +259,15 @@ function normalizeTask(task) {
   }
   if (!Array.isArray(task.subtasks)) task.subtasks = [];
   task.subtasks.forEach((subtask) => normalizeTask(subtask));
+}
+
+function normalizeQuarterTask(task) {
+  if (!Array.isArray(task.weeks) || task.weeks.length !== quarterInfo.weeksInQuarter) {
+    const old = Array.isArray(task.weeks) ? task.weeks : [];
+    task.weeks = new Array(quarterInfo.weeksInQuarter).fill(false).map((v, i) => Boolean(old[i]));
+  }
+  if (!Array.isArray(task.subtasks)) task.subtasks = [];
+  task.subtasks.forEach((subtask) => normalizeQuarterTask(subtask));
 }
 
 function saveState() {
@@ -221,6 +311,48 @@ function buildDayCells(row, item, onChange) {
     checkbox.setAttribute("aria-label", `${item.text} - Day ${day}`);
     checkbox.addEventListener("change", () => {
       item.days[day - 1] = checkbox.checked;
+      onChange();
+    });
+    if (!checkbox.checked) allDone = false;
+    cell.appendChild(checkbox);
+    row.appendChild(cell);
+  }
+  return allDone;
+}
+
+function renderQuarterHeader() {
+  qHeaderRow.innerHTML = "";
+
+  const taskTh = document.createElement("th");
+  taskTh.className = "task-col";
+  taskTh.textContent = "Goal";
+  qHeaderRow.appendChild(taskTh);
+
+  for (let week = 1; week <= quarterInfo.weeksInQuarter; week++) {
+    const th = document.createElement("th");
+    th.className = "day-col";
+    if (week === quarterInfo.todayWeek) th.classList.add("today-col");
+    th.innerHTML = `<span class="day-num">${week}</span><span class="day-dow">WK</span>`;
+    qHeaderRow.appendChild(th);
+  }
+
+  const actionTh = document.createElement("th");
+  actionTh.className = "action-col";
+  qHeaderRow.appendChild(actionTh);
+}
+
+function buildWeekCells(row, item, onChange) {
+  let allDone = true;
+  for (let week = 1; week <= quarterInfo.weeksInQuarter; week++) {
+    const cell = document.createElement("td");
+    cell.className = "day-cell";
+    if (week === quarterInfo.todayWeek) cell.classList.add("today-col");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = Boolean(item.weeks[week - 1]);
+    checkbox.setAttribute("aria-label", `${item.text} - Week ${week}`);
+    checkbox.addEventListener("change", () => {
+      item.weeks[week - 1] = checkbox.checked;
       onChange();
     });
     if (!checkbox.checked) allDone = false;
@@ -354,6 +486,142 @@ function renderAddSubtaskFormRow(task) {
   return row;
 }
 
+function renderQuarterTaskRow(task) {
+  const row = document.createElement("tr");
+
+  const taskCell = document.createElement("td");
+  taskCell.className = "task-cell";
+
+  const taskText = document.createElement("span");
+  taskText.className = "task-text";
+  taskText.textContent = task.text;
+  taskCell.appendChild(taskText);
+
+  const addSubtaskBtn = document.createElement("button");
+  addSubtaskBtn.type = "button";
+  addSubtaskBtn.className = "add-subtask-btn";
+  addSubtaskBtn.textContent = "+ Subtask";
+  addSubtaskBtn.setAttribute("aria-label", `Add subtask to "${task.text}"`);
+  addSubtaskBtn.addEventListener("click", () => {
+    if (openQuarterSubtaskForms.has(task.id)) {
+      openQuarterSubtaskForms.delete(task.id);
+    } else {
+      openQuarterSubtaskForms.add(task.id);
+    }
+    render();
+  });
+  taskCell.appendChild(addSubtaskBtn);
+
+  row.appendChild(taskCell);
+
+  const allWeeksDone = buildWeekCells(row, task, () => {
+    saveState();
+    render();
+  });
+  taskText.classList.toggle("done", allWeeksDone);
+
+  const actionCell = document.createElement("td");
+  actionCell.appendChild(
+    buildDeleteButton(`Delete "${task.text}"`, () => {
+      state.quarterlyTasks = state.quarterlyTasks.filter((t) => t.id !== task.id);
+      openQuarterSubtaskForms.delete(task.id);
+      saveState();
+      render();
+    })
+  );
+  row.appendChild(actionCell);
+
+  return row;
+}
+
+function renderQuarterSubtaskRow(task, subtask) {
+  const row = document.createElement("tr");
+  row.className = "subtask-row";
+
+  const taskCell = document.createElement("td");
+  taskCell.className = "task-cell subtask-cell";
+  const taskText = document.createElement("span");
+  taskText.className = "task-text";
+  taskText.textContent = subtask.text;
+  taskCell.appendChild(taskText);
+  row.appendChild(taskCell);
+
+  const allWeeksDone = buildWeekCells(row, subtask, () => {
+    saveState();
+    render();
+  });
+  taskText.classList.toggle("done", allWeeksDone);
+
+  const actionCell = document.createElement("td");
+  actionCell.appendChild(
+    buildDeleteButton(`Delete "${subtask.text}"`, () => {
+      task.subtasks = task.subtasks.filter((s) => s.id !== subtask.id);
+      saveState();
+      render();
+    })
+  );
+  row.appendChild(actionCell);
+
+  return row;
+}
+
+function renderAddQuarterSubtaskFormRow(task) {
+  const row = document.createElement("tr");
+  row.className = "subtask-row";
+
+  const cell = document.createElement("td");
+  cell.colSpan = quarterInfo.weeksInQuarter + 2;
+
+  const form = document.createElement("form");
+  form.className = "subtask-form";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Subtask name";
+  input.required = true;
+  form.appendChild(input);
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "submit";
+  addBtn.textContent = "Add";
+  form.appendChild(addBtn);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    task.subtasks.push(makeQuarterTask(text, quarterInfo.weeksInQuarter));
+    saveState();
+    render();
+  });
+
+  cell.appendChild(form);
+  row.appendChild(cell);
+  return row;
+}
+
+function renderQuarterSummary() {
+  let totalCells = 0;
+  let checkedCells = 0;
+
+  function tally(item) {
+    totalCells += quarterInfo.weeksInQuarter;
+    checkedCells += item.weeks.filter(Boolean).length;
+    item.subtasks.forEach(tally);
+  }
+  state.quarterlyTasks.forEach(tally);
+
+  if (totalCells === 0) {
+    qSummaryCard.hidden = true;
+    return;
+  }
+  const percent = Math.round((checkedCells / totalCells) * 100);
+  const namePart = state.name ? `${state.name}'s` : "Your";
+  qSummaryText.textContent = `${namePart} quarter progress: ${checkedCells} of ${totalCells} weekly check-ins complete (${percent}%)`;
+  qProgressFill.style.width = `${percent}%`;
+  qSummaryCard.hidden = false;
+}
+
 function renderPrompts() {
   promptGroups.innerHTML = "";
 
@@ -402,12 +670,17 @@ function insertPrompt(text) {
 function render() {
   nameInput.value = state.name;
   monthLabel.textContent = `${monthInfo.monthLabelText} — tap a day to mark it done.`;
+  quarterLabel.textContent = `${quarterInfo.quarterLabelText} — fill this in once to set the direction, then revisit anytime.`;
 
   Object.keys(resetFields).forEach((key) => {
     resetFields[key].value = state.monthlyReset[key] || "";
   });
+  Object.keys(qResetFields).forEach((key) => {
+    qResetFields[key].value = state.quarterlyReset[key] || "";
+  });
 
   renderHeader();
+  renderQuarterHeader();
 
   taskList.innerHTML = "";
   emptyState.hidden = state.tasks.length > 0;
@@ -422,7 +695,21 @@ function render() {
     }
   });
 
+  qTaskList.innerHTML = "";
+  qEmptyState.hidden = state.quarterlyTasks.length > 0;
+
+  state.quarterlyTasks.forEach((task) => {
+    qTaskList.appendChild(renderQuarterTaskRow(task));
+    task.subtasks.forEach((subtask) => {
+      qTaskList.appendChild(renderQuarterSubtaskRow(task, subtask));
+    });
+    if (openQuarterSubtaskForms.has(task.id)) {
+      qTaskList.appendChild(renderAddQuarterSubtaskFormRow(task));
+    }
+  });
+
   renderSummary();
+  renderQuarterSummary();
   renderPrompts();
   renderJournalDateOptions();
   renderJournalEntry();
@@ -479,11 +766,19 @@ nameInput.addEventListener("input", () => {
   state.name = nameInput.value;
   saveState();
   renderSummary();
+  renderQuarterSummary();
 });
 
 Object.keys(resetFields).forEach((key) => {
   resetFields[key].addEventListener("input", () => {
     state.monthlyReset[key] = resetFields[key].value;
+    saveState();
+  });
+});
+
+Object.keys(qResetFields).forEach((key) => {
+  qResetFields[key].addEventListener("input", () => {
+    state.quarterlyReset[key] = qResetFields[key].value;
     saveState();
   });
 });
@@ -494,6 +789,16 @@ taskForm.addEventListener("submit", (event) => {
   if (!text) return;
   state.tasks.push(makeTask(text, monthInfo.daysInMonth));
   taskInput.value = "";
+  saveState();
+  render();
+});
+
+qTaskForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = qTaskInput.value.trim();
+  if (!text) return;
+  state.quarterlyTasks.push(makeQuarterTask(text, quarterInfo.weeksInQuarter));
+  qTaskInput.value = "";
   saveState();
   render();
 });
@@ -519,16 +824,37 @@ function checkForMonthChange() {
   const freshInfo = getMonthInfo();
   if (freshInfo.monthKey !== monthInfo.monthKey) {
     monthInfo = freshInfo;
-    state = { name: state.name, monthKey: monthInfo.monthKey, monthlyReset: emptyMonthlyReset(), tasks: [], journal: {} };
+    state.monthKey = monthInfo.monthKey;
+    state.monthlyReset = emptyMonthlyReset();
+    state.tasks = [];
+    state.journal = {};
     saveState();
     render();
   }
 }
 
-// Catches the month rolling over while the page stays open.
-setInterval(checkForMonthChange, 60 * 1000);
+function checkForQuarterChange() {
+  const freshInfo = getQuarterInfo();
+  if (freshInfo.quarterKey !== quarterInfo.quarterKey) {
+    quarterInfo = freshInfo;
+    state.quarterKey = quarterInfo.quarterKey;
+    state.quarterlyReset = emptyQuarterlyReset();
+    state.quarterlyTasks = [];
+    saveState();
+    render();
+  }
+}
+
+// Catches the month or quarter rolling over while the page stays open.
+setInterval(() => {
+  checkForMonthChange();
+  checkForQuarterChange();
+}, 60 * 1000);
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) checkForMonthChange();
+  if (!document.hidden) {
+    checkForMonthChange();
+    checkForQuarterChange();
+  }
 });
 
 render();

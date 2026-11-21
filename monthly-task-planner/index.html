@@ -22,6 +22,58 @@
 
     <div id="protected-area">
     <section class="card">
+      <h2 class="section-heading">Quarterly Reset</h2>
+      <p class="section-hint" id="quarter-label">Fresh page, fresh quarter. Fill this in once to set the direction.</p>
+      <div class="reset-grid">
+        <div class="reset-field">
+          <label for="qreset-vision">What I want this quarter to look like</label>
+          <textarea id="qreset-vision" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="qreset-goals">My main goals for the quarter</label>
+          <textarea id="qreset-goals" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="qreset-milestones">Key milestones I want to hit</label>
+          <textarea id="qreset-milestones" rows="2"></textarea>
+        </div>
+        <div class="reset-field">
+          <label for="qreset-risks">What could get in the way</label>
+          <textarea id="qreset-risks" rows="2"></textarea>
+        </div>
+        <div class="reset-field reset-field-wide">
+          <label for="qreset-habit">A system or habit I want to build this quarter</label>
+          <textarea id="qreset-habit" rows="2"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-heading">Quarterly Goals Tracker</h2>
+      <p class="section-hint">List your quarter's goals, then tick off each week you make progress.</p>
+      <form id="qtask-form" class="task-form">
+        <input type="text" id="qtask-input" placeholder="What do you want to achieve this quarter?" required />
+        <button type="submit">Add Goal</button>
+      </form>
+      <div class="table-wrapper">
+        <table id="qtask-table">
+          <thead>
+            <tr id="qheader-row"></tr>
+          </thead>
+          <tbody id="qtask-list"></tbody>
+        </table>
+        <p id="qempty-state" class="empty-state">No quarterly goals yet — add your first one above.</p>
+      </div>
+    </section>
+
+    <section class="card summary" id="qsummary-card" hidden>
+      <span id="qsummary-text"></span>
+      <div class="progress-bar">
+        <div id="qprogress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="card">
       <h2 class="section-heading">Monthly Reset</h2>
       <p class="section-hint">Fresh page, fresh month. Fill this in once to set the tone.</p>
       <div class="reset-grid">
